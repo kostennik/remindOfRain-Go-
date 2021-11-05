@@ -1,7 +1,7 @@
 package weather
 
 type Weather interface {
-	GetWeather() (*weather, error)
+	GetForecast() (*weather, error)
 }
 
 type weather struct {

@@ -4,58 +4,53 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"net/http"
+	client "remind-of-rain/src/httpClient"
+	"time"
 )
 
 type accuweather struct {
-	ApiKey   string
-	Url      string
-	CityCode string
-	Language string
-	httpGet  func(url string) (resp *http.Response, err error)
+	ApiKey     string
+	Url        string
+	CityCode   string
+	Language   string
+	httpGetter client.HttpClient
 }
 
 func NewAccuweather(apiKey string, url string, cityCode string, language string) *accuweather {
 	return &accuweather{
-		ApiKey:   apiKey,
-		Url:      url,
-		CityCode: cityCode,
-		Language: language,
-		httpGet:  http.Get,
+		ApiKey:     apiKey,
+		Url:        url,
+		CityCode:   cityCode,
+		Language:   language,
+		httpGetter: client.NewHttpClient(5 * time.Second),
 	}
 }
 
-func (a accuweather) GetWeather() (*weather, error) {
+func (a accuweather) GetForecast() (*weather, error) {
 	url := fmt.Sprintf("%s/%s?apikey=%s&language=%s&details=%v&metric=%v", a.Url, a.CityCode, a.ApiKey, a.Language, true, true)
 
-	resp, err := http.Get(url)
+	resp, err := a.httpGetter.Do(url, http.MethodGet, nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error while getting the data from: %s", a.Url)
-	}
-	defer resp.Body.Close()
-
-	responseBodyRaw, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error occurred while reading response body")
+		return nil, errors.Wrapf(err, "GetForecast(): error while getting a forecast")
 	}
 
-	var result = new(accuweatherForecast)
-	if err = json.Unmarshal(responseBodyRaw, result); err != nil {
-		return nil, errors.Wrapf(err, "error while encoding struct from json")
+	var forecast = new(accuweatherForecast)
+	if err = json.Unmarshal(resp, forecast); err != nil {
+		return nil, errors.Wrapf(err, "GetForecast(): error while encoding struct from json")
 	}
 
-	if result == nil {
-		return nil, errors.New("accuweather forecast is empty")
+	var result = new(weather)
+	if forecast != nil || forecast.DailyForecast != nil {
+		result = &weather{
+			TempMin:          forecast.DailyForecast[1].Temperature.Minimum.Value,
+			TempMax:          forecast.DailyForecast[1].Temperature.Maximum.Value,
+			DescriptionDay:   forecast.DailyForecast[1].Day.LongPhrase,
+			DescriptionNight: forecast.DailyForecast[1].Night.LongPhrase,
+		}
 	}
 
-	return &weather{
-		TempMin:          result.DailyForecast[1].Temperature.Minimum.Value,
-		TempMax:          result.DailyForecast[1].Temperature.Maximum.Value,
-		DescriptionDay:   result.DailyForecast[1].Day.LongPhrase,
-		DescriptionNight: result.DailyForecast[1].Night.LongPhrase,
-	}, nil
-
+	return result, nil
 }
 
 type accuweatherForecast struct {
@@ -65,7 +60,7 @@ type accuweatherForecast struct {
 type dailyForecast struct {
 	Temperature *temperature `json:"Temperature"`
 	Day         *day         `json:"Day"`
-	Night       *night       `json:"Night"`
+	Night       *day         `json:"Night"`
 }
 
 type temperature struct {
@@ -80,8 +75,5 @@ type unit struct {
 }
 
 type day struct {
-	LongPhrase string `json:"LongPhrase"`
-}
-type night struct {
 	LongPhrase string `json:"LongPhrase"`
 }

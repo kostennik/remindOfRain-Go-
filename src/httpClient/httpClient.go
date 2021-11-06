@@ -11,7 +11,7 @@ import (
 )
 
 type HttpClient interface {
-	Do(url, method string, body io.Reader) ([]byte, error)
+	Do(ctx context.Context, url, method string, body io.Reader) ([]byte, error)
 }
 
 type httpClient struct {
@@ -22,8 +22,8 @@ func NewHttpClient(timeout time.Duration) *httpClient {
 	return &httpClient{timeout: timeout}
 }
 
-func (h httpClient) Do(url, method string, body io.Reader) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), h.timeout)
+func (h httpClient) Do(c context.Context, url, method string, body io.Reader) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(c, h.timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {

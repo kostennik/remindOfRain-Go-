@@ -2,8 +2,10 @@ package messenger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	client "remind-of-rain/src/httpClient"
 	"strings"
@@ -25,11 +27,13 @@ func NewPushover(appToken string, userToken string) *Pushover {
 	return &Pushover{
 		AppToken:  appToken,
 		UserToken: userToken,
-		httpDo:    client.NewHttpClient(5 * time.Second),
+		httpDo:    client.NewHttpClient(20 * time.Second),
 	}
 }
 
-func (p Pushover) SendMessage(title string, message string) error {
+func (p Pushover) SendMessage(ctx context.Context, title string, message string) error {
+	log.Debug().Msg("starting SendMessage()")
+
 	requestBody := []byte(
 		"token=" + p.AppToken +
 			"&user=" + p.UserToken +
@@ -37,7 +41,7 @@ func (p Pushover) SendMessage(title string, message string) error {
 			"&title=" + title +
 			"&message=" + message)
 
-	resp, err := p.httpDo.Do(pushoverUrl, http.MethodPost, bytes.NewBuffer(requestBody))
+	resp, err := p.httpDo.Do(ctx, pushoverUrl, http.MethodPost, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return errors.Wrapf(err, "error while sending a request to %s", pushoverUrl)
 	}
@@ -47,6 +51,7 @@ func (p Pushover) SendMessage(title string, message string) error {
 		return err
 	}
 
+	log.Debug().Msg("end SendMessage()")
 	return nil
 }
 

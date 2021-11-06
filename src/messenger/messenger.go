@@ -1,5 +1,7 @@
 package messenger
 
+import "context"
+
 type Messenger interface {
-	SendMessage(title string, message string) error
+	SendMessage(ctx context.Context, title string, message string) error
 }

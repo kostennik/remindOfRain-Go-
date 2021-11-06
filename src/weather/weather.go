@@ -1,7 +1,9 @@
 package weather
 
+import "context"
+
 type Weather interface {
-	GetForecast() (*weather, error)
+	GetForecast(ctx context.Context) (*weather, error)
 }
 
 type weather struct {

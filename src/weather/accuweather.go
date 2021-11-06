@@ -1,9 +1,11 @@
 package weather
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	client "remind-of-rain/src/httpClient"
 	"time"
@@ -23,14 +25,15 @@ func NewAccuweather(apiKey string, url string, cityCode string, language string)
 		Url:        url,
 		CityCode:   cityCode,
 		Language:   language,
-		httpGetter: client.NewHttpClient(5 * time.Second),
+		httpGetter: client.NewHttpClient(20 * time.Second),
 	}
 }
 
-func (a accuweather) GetForecast() (*weather, error) {
+func (a accuweather) GetForecast(ctx context.Context) (*weather, error) {
+	log.Debug().Msg("starting GetForecast()")
 	url := fmt.Sprintf("%s/%s?apikey=%s&language=%s&details=%v&metric=%v", a.Url, a.CityCode, a.ApiKey, a.Language, true, true)
 
-	resp, err := a.httpGetter.Do(url, http.MethodGet, nil)
+	resp, err := a.httpGetter.Do(ctx, url, http.MethodGet, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "GetForecast(): error while getting a forecast")
 	}
@@ -50,6 +53,7 @@ func (a accuweather) GetForecast() (*weather, error) {
 		}
 	}
 
+	log.Debug().Msg("end GetForecast()")
 	return result, nil
 }
 

@@ -1,6 +1,7 @@
 package weather
 
 import (
+	"context"
 	"errors"
 	"io"
 	"reflect"
@@ -26,7 +27,7 @@ func Test_accuweather_GetWeather(t *testing.T) {
 				ApiKey: "correct-key",
 				httpGetter: httpGetterMock{
 					t: t,
-					DoMock: func(url, method string, body io.Reader) ([]byte, error) {
+					DoMock: func(ctx context.Context, url, method string, body io.Reader) ([]byte, error) {
 						return correctResponse, nil
 					},
 				},
@@ -45,7 +46,7 @@ func Test_accuweather_GetWeather(t *testing.T) {
 				ApiKey: "incorrect-key",
 				httpGetter: httpGetterMock{
 					t: t,
-					DoMock: func(url, method string, body io.Reader) ([]byte, error) {
+					DoMock: func(ctx context.Context, url, method string, body io.Reader) ([]byte, error) {
 						return unauthorizedResponse, errors.New("authorization failed")
 					},
 				},
@@ -55,13 +56,14 @@ func Test_accuweather_GetWeather(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := accuweather{
 				ApiKey:     tt.fields.ApiKey,
 				httpGetter: tt.fields.httpGetter,
 			}
-			got, err := a.GetForecast()
+			got, err := a.GetForecast(ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetForecast() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -75,14 +77,14 @@ func Test_accuweather_GetWeather(t *testing.T) {
 
 type httpGetterMock struct {
 	t      *testing.T
-	DoMock func(url, method string, body io.Reader) ([]byte, error)
+	DoMock func(ctx context.Context, url, method string, body io.Reader) ([]byte, error)
 }
 
-func (h httpGetterMock) Do(url, method string, body io.Reader) ([]byte, error) {
+func (h httpGetterMock) Do(ctx context.Context, url, method string, body io.Reader) ([]byte, error) {
 	if url == "" || method == "" {
 		h.t.Error("Do(): url and method is required")
 	}
-	return h.DoMock(url, method, body)
+	return h.DoMock(ctx, url, method, body)
 }
 
 var unauthorizedResponse = []byte(`

@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	pushoverUrl         = "https://api.pushover.net/1/messages.json"
-	pushoverContentType = "application/x-www-form-urlencoded"
+	pushoverUrl = "https://api.pushover.net/1/messages.json"
 )
 
 type Pushover struct {
@@ -33,6 +32,10 @@ func NewPushover(appToken string, userToken string) *Pushover {
 
 func (p Pushover) SendMessage(ctx context.Context, title string, message string) error {
 	log.Debug().Msg("starting SendMessage()")
+
+	if message == "" {
+		return errEmptyMessage
+	}
 
 	requestBody := []byte(
 		"token=" + p.AppToken +

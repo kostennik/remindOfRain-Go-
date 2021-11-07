@@ -46,6 +46,7 @@ func (h httpClient) Do(c context.Context, url, method string, body io.Reader) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "error occurred while reading response body")
 	}
+	log.Debug().Bytes("response", responseBodyRaw).Msgf("response from %s", url)
 
 	return responseBodyRaw, nil
 }

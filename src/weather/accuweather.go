@@ -14,12 +14,12 @@ import (
 type accuweather struct {
 	ApiKey     string
 	Url        string
-	CityCode   string
+	CityCode   int
 	Language   string
 	httpGetter client.HttpClient
 }
 
-func NewAccuweather(apiKey string, url string, cityCode string, language string) *accuweather {
+func NewAccuweather(apiKey string, url string, cityCode int, language string) *accuweather {
 	return &accuweather{
 		ApiKey:     apiKey,
 		Url:        url,
@@ -31,7 +31,7 @@ func NewAccuweather(apiKey string, url string, cityCode string, language string)
 
 func (a accuweather) GetForecast(ctx context.Context) (*weather, error) {
 	log.Debug().Msg("starting GetForecast()")
-	url := fmt.Sprintf("%s/%s?apikey=%s&language=%s&details=%v&metric=%v", a.Url, a.CityCode, a.ApiKey, a.Language, true, true)
+	url := fmt.Sprintf("%s/%d?apikey=%s&language=%s&details=%v&metric=%v", a.Url, a.CityCode, a.ApiKey, a.Language, true, true)
 
 	resp, err := a.httpGetter.Do(ctx, url, http.MethodGet, nil)
 	if err != nil {

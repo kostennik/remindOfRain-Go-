@@ -1,0 +1,11 @@
+weather:
+  accuweather:
+    url: https://dataservice.accuweather.com/forecasts/v1/daily/5day
+    cityCode: 270933 #see in https://developer.accuweather.com/
+    apiKey: your-api-key
+    language: pl-pl
+messenger:
+  pushover:
+    url: https://api.pushover.net/1/messages.json
+    appKey: your-api-key
+    userKey: your-user-key

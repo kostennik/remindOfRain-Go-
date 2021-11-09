@@ -15,14 +15,16 @@ func TestLoadConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		testConfig testFile
-		want       *configuration
+		want       *Configuration
 		wantErr    bool
 	}{
 		{
-			name: "correct read configuration from yaml-file",
+			name: "correct read Configuration from yaml-file",
 			testConfig: testFile{
 				name: "./correct-config.yaml",
 				body: []byte(`
+app:
+  eventTime: 20:00
 weather:
   accuweather:
     url: https://dataservice.accuweather.com/forecasts/v1/daily/5day
@@ -36,7 +38,10 @@ messenger:
     userKey: kliykjul786uiju
 `),
 			},
-			want: &configuration{
+			want: &Configuration{
+				App: &app{
+					EventTime: "20:00",
+				},
 				Weather: &weather{
 					Accuweather: &accuweather{
 						Url:      "https://dataservice.accuweather.com/forecasts/v1/daily/5day",

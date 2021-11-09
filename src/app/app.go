@@ -9,13 +9,9 @@ import (
 	"remind-of-rain/src/weather"
 )
 
-func Start() error {
-	cfg, err := config.NewConfiguration("./config/properties.yaml").LoadConfig()
-	if err != nil {
-		return err
-	}
-
+func Start(cfg *config.Configuration) error {
 	ctx := context.Background()
+
 	w := weather.NewAccuweather(cfg.Weather.Accuweather.ApiKey, cfg.Weather.Accuweather.Url, cfg.Weather.Accuweather.CityCode, cfg.Weather.Accuweather.Language)
 	forecast, err := w.GetForecast(ctx)
 	if err != nil {

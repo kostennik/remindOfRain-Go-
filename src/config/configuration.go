@@ -5,14 +5,19 @@ import (
 	"io/ioutil"
 )
 
-func NewConfiguration(path string) *configuration {
-	return &configuration{path: path}
+func NewConfiguration(path string) *Configuration {
+	return &Configuration{path: path}
 }
 
-type configuration struct {
+type Configuration struct {
 	path      string
+	App       *app       `yaml:"app"`
 	Weather   *weather   `yaml:"weather"`
 	Messenger *messenger `yaml:"messenger"`
+}
+
+type app struct {
+	EventTime string `yaml:"eventTime"`
 }
 
 type weather struct {
@@ -36,7 +41,7 @@ type pushover struct {
 	UserKey string `yaml:"userKey"`
 }
 
-func (c configuration) LoadConfig() (*configuration, error) {
+func (c Configuration) LoadConfig() (*Configuration, error) {
 	file, err := ioutil.ReadFile(c.path)
 	if err != nil {
 		return nil, err
@@ -46,7 +51,7 @@ func (c configuration) LoadConfig() (*configuration, error) {
 		return nil, errFilePropertyIsEmpty
 	}
 
-	var conf configuration
+	var conf Configuration
 
 	err = yaml.Unmarshal(file, &conf)
 	if err != nil {

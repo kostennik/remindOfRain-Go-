@@ -10,7 +10,7 @@ import (
 )
 
 func Start() error {
-	cfg, err := config.NewConfiguration("../config/properties.yaml").LoadConfig()
+	cfg, err := config.NewConfiguration("./config/properties.yaml").LoadConfig()
 	if err != nil {
 		return err
 	}

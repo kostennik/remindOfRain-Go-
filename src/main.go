@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
+	log2 "log"
 	"remind-of-rain/src/app"
 	"remind-of-rain/src/config"
 	"time"
@@ -11,7 +12,7 @@ import (
 func main() {
 	cfg, err := config.NewConfiguration("./config/properties.yaml").LoadConfig()
 	if err != nil {
-		//return err
+		log2.Fatal(err)
 	}
 
 	c := cron.New()
@@ -19,7 +20,6 @@ func main() {
 		err := app.Start(cfg)
 		if err != nil {
 			log.Err(err).Msg("error while running application")
-			return
 		}
 	})
 	c.Start()

@@ -18,6 +18,16 @@ func Start(cfg *config.Configuration) error {
 		return errors.Wrap(err, "error while getting weather")
 	}
 
+	detect, err := forecast.RainDetect(cfg.Weather.Accuweather.Language)
+	if err != nil {
+		return err
+	}
+
+	//if the rain is not detected, don't send the message
+	if !detect {
+		return nil
+	}
+
 	p := messenger.NewPushover(cfg.Messenger.Pushover.AppKey, cfg.Messenger.Pushover.UserKey)
 	msg := fmt.Sprintf("Weather for tomorrow: %1.f-%1.f, day: %s, night: %s", forecast.TempMin, forecast.TempMax, forecast.DescriptionDay, forecast.DescriptionNight)
 	err = p.SendMessage(ctx, "Take an umbrella", msg)
